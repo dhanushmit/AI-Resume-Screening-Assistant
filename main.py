@@ -31,13 +31,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(BASE_DIR, "app", "static")
+index_file = os.path.join(static_dir, "index.html")
+
 # Serve Frontend static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/")
 async def read_index():
     """Serves the main single-page web dashboard."""
-    return FileResponse("app/static/index.html")
+    return FileResponse(index_file)
 
 @app.post("/api/screen", response_model=ScreeningResponse)
 async def api_screen_resumes(
