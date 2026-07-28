@@ -74,6 +74,22 @@ To run unit and pipeline tests:
 python verify_pipeline.py
 ```
 
+
+## 🌐 Live Deployment (Hosting)
+
+You can host this application live on the web for free using **Render.com**.
+
+### One-Click Deploy (Render Blueprint)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/dhanushmit/AI-Resume-Screening-Assistant)
+
+1. Click the **Deploy to Render** button above.
+2. Sign in to your Render account (or create one for free).
+3. Under **Blueprint Configuration**:
+   - Provide a unique service name.
+   - Enter your `GEMINI_API_KEY` (and/or `OPENAI_API_KEY`) as environment variables.
+4. Click **Apply**. Render will automatically build the environment and deploy your live dashboard!
+
 ---
 
 ## 🧩 System Architecture

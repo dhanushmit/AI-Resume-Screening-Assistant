@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-resume-screening-assistant
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: GEMINI_API_KEY
+        sync: false
+        placeholder: "Optional - Enter your Gemini API Key"
+      - key: OPENAI_API_KEY
+        sync: false
+        placeholder: "Optional - Enter your OpenAI API Key"
