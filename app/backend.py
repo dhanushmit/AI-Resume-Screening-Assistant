@@ -52,7 +52,7 @@ def get_embedding_model(provider: str, api_key: str = None):
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
         if not api_key:
             raise ValueError("Gemini API key is required for Gemini embeddings.")
-        return GoogleGenerativeAIEmbeddings(google_api_key=api_key, model="models/gemini-embedding-2")
+        return GoogleGenerativeAIEmbeddings(google_api_key=api_key, model="models/text-embedding-004")
     elif provider == "sentence-transformers":
         from langchain_community.embeddings import HuggingFaceEmbeddings
         try:
