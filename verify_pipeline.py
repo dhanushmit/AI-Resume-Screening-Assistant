@@ -16,8 +16,8 @@ class TestResumeScreeningAssistant(unittest.TestCase):
         self.assertTrue(all(len(c) <= 100 for c in chunks))
         print(f"[OK] Chunking tests passed. Generated {len(chunks)} chunks.")
 
-    @patch('langchain_community.vectorstores.FAISS')
-    def test_langgraph_flow(self, mock_faiss):
+    @patch('langchain_core.vectorstores.InMemoryVectorStore')
+    def test_langgraph_flow(self, mock_vector_store):
         """Verify that the LangGraph workflow retrieves and scores successfully with a mocked LLM."""
         # Create a mock retriever
         mock_retriever = MagicMock()

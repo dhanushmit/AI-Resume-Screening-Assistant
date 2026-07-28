@@ -7,7 +7,7 @@ from pypdf import PdfReader
 
 # LangChain / LangGraph imports
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
+from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, END
 
@@ -83,7 +83,7 @@ class CandidateState(TypedDict):
     job_description: str
     candidate_name: str
     candidate_id: str
-    retriever: Any  # FAISS retriever
+    retriever: Any  # VectorStore retriever
     top_k: int
     api_provider: str
     api_key: str
@@ -105,11 +105,11 @@ def retrieve_node(state: CandidateState) -> Dict[str, Any]:
         top_k = state.get("top_k", 5)
         jd = state["job_description"]
         
-        # Query FAISS
+        # Query VectorStore
         docs = retriever.invoke(jd)[:top_k]
         retrieved_chunks = [doc.page_content for doc in docs]
         
-        logs.append(f"Successfully retrieved {len(retrieved_chunks)} relevant chunk(s) from FAISS.")
+        logs.append(f"Successfully retrieved {len(retrieved_chunks)} relevant chunk(s) from vector store.")
         return {
             "retrieved_chunks": retrieved_chunks,
             "logs": logs
@@ -268,9 +268,9 @@ def screen_candidates(
                 raise ValueError("No text content could be extracted from this resume PDF.")
             
             # Step 3: Build Vector Store for candidate
-            db = FAISS.from_texts(chunks, embeddings)
+            db = InMemoryVectorStore.from_texts(chunks, embeddings)
             retriever = db.as_retriever(search_kwargs={"k": top_k})
-            candidate_logs.append("FAISS vector store indexed successfully (Per-candidate isolated RAG index).")
+            candidate_logs.append("InMemoryVectorStore indexed successfully (Per-candidate isolated RAG index).")
             
             # Step 4: Execute LangGraph
             initial_state = {
