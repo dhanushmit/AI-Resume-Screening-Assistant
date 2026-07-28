@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Screening Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="background-glows">
+        <div class="glow-1"></div>
+        <div class="glow-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+                <div class="logo-text">
+                    <h1>ScreenAI</h1>
+                    <span>Resume Screening Assistant</span>
+                </div>
+            </div>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
+                <div class="header-badges">
+                    <span class="badge badge-rag" id="btnOpenRagInfo" style="cursor: pointer;"><i class="fa-solid fa-database"></i> RAG Pipeline</span>
+                    <span class="badge badge-graph" id="btnOpenGraphInfo" style="cursor: pointer;"><i class="fa-solid fa-diagram-project"></i> LangGraph Orchestrated</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btnOpenSettings" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 20px; gap: 6px;">
+                    <i class="fa-solid fa-sliders"></i> Settings
+                </button>
+            </div>
+        </header>
+
+        <main>
+
+
+            <!-- Main Interactive Screen -->
+            <div class="grid-2">
+                <!-- Left: Job Description -->
+                <section class="card editor-card">
+                    <div class="card-header">
+                        <div class="header-title">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <h2>Job Description</h2>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="btnLoadSampleJD">Load Sample</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="jobDescription" placeholder="Paste the Job Description (requirements, skills, experience needed) here..."></textarea>
+                    </div>
+                </section>
+
+                <!-- Right: Resume Upload -->
+                <section class="card upload-card">
+                    <div class="card-header">
+                        <div class="header-title">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <h2>Candidate Resumes</h2>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="btnLoadSampleResumes" style="display:none;">Add Samples</button>
+                    </div>
+                    <div class="card-body flex-column">
+                        <div class="dropzone" id="dropzone">
+                            <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                            <h3>Drag & Drop Resume PDFs</h3>
+                            <p style="margin-bottom: 8px;">or click to upload from computer</p>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnBrowse" style="pointer-events: none;"><i class="fa-solid fa-folder-open"></i> Browse Files</button>
+                        </div>
+                        <input type="file" id="fileInput" multiple accept=".pdf" style="opacity: 0; position: absolute; width: 1px; height: 1px; z-index: -1; overflow: hidden;">
+                        
+                        <div class="file-list-container">
+                            <div class="file-list-header">
+                                <span>Uploaded Files (<span id="fileCount">0</span>)</span>
+                                <button class="btn-clear-all" id="btnClearAll"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                            </div>
+                            <ul class="file-list" id="fileList">
+                                <li class="empty-state">No files uploaded yet.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Action Area -->
+            <div class="action-container">
+                <button class="btn btn-primary" id="btnStartScreen">
+                    <i class="fa-solid fa-robot btn-icon"></i>
+                    <span>Start Screening Workflow</span>
+                </button>
+            </div>
+
+            <!-- Loader / Progress Area -->
+            <section class="card progress-card" id="progressCard" style="display: none;">
+                <div class="card-body">
+                    <div class="progress-info">
+                        <div class="progress-status">
+                            <i class="fa-solid fa-circle-notch fa-spin status-spinner"></i>
+                            <span id="progressText">Analyzing and Screening...</span>
+                        </div>
+                        <span id="progressPercentage">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+                    </div>
+                    <div class="terminal-logs-wrapper">
+                        <div class="terminal-header">
+                            <span>Pipeline Live Execution Logs</span>
+                            <i class="fa-solid fa-terminal"></i>
+                        </div>
+                        <div class="terminal-body" id="terminalLogs">
+                            <!-- Terminal logs appear here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="card results-card" id="resultsCard" style="display: none;">
+                <div class="card-header">
+                    <div class="header-title">
+                        <i class="fa-solid fa-ranking-star"></i>
+                        <h2>Screening Results & Candidate Rankings</h2>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="btnExportCSV"><i class="fa-solid fa-download"></i> Export CSV</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">Rank</th>
+                                    <th>Candidate Name</th>
+                                    <th style="width: 150px;">Match Score</th>
+                                    <th>Top Missing Skills</th>
+                                    <th style="width: 150px; text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <!-- Results rows here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Built with Python, LangGraph, FAISS, and FastAPI. Objective & Grounded AI Resume Screener.</p>
+        </footer>
+    </div>
+
+    <!-- Candidate Detail Modal -->
+    <div class="modal" id="candidateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-candidate-info">
+                    <h2 id="modalCandidateName">Jane Doe</h2>
+                    <span class="modal-rank-badge" id="modalCandidateRank">Rank #1</span>
+                </div>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="tab-summary">Evaluation Summary</button>
+                <button class="tab-btn" data-tab="tab-graph">LangGraph Flow</button>
+                <button class="tab-btn" data-tab="tab-rag">RAG Inspector</button>
+            </div>
+
+            <div class="modal-body-content">
+                <!-- Tab: Summary -->
+                <div class="tab-pane active" id="tab-summary">
+                    <div class="summary-grid">
+                        <div class="score-circle-container">
+                            <div class="score-circle-svg">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" class="circle-bg"></circle>
+                                    <circle cx="50" cy="50" r="40" class="circle-fill" id="modalScoreCircle" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                </svg>
+                                <div class="score-text">
+                                    <span id="modalScoreValue">0</span>
+                                    <span class="percent-symbol">%</span>
+                                </div>
+                            </div>
+                            <h3>Match Score</h3>
+                        </div>
+
+                        <div class="verdict-container">
+                            <h3>Recruiter Verdict</h3>
+                            <p class="verdict-text" id="modalVerdict">Candidate demonstrates strong capabilities in modern Python web development but lacks containerization and cloud infrastructure experience.</p>
+                        </div>
+                    </div>
+
+                    <div class="skills-grid">
+                        <div class="skills-box matching-box">
+                            <h4><i class="fa-solid fa-circle-check"></i> Matching Skills</h4>
+                            <ul id="modalMatchingSkills">
+                                <!-- Skills matching -->
+                            </ul>
+                        </div>
+                        <div class="skills-box missing-box">
+                            <h4><i class="fa-solid fa-circle-xmark"></i> Missing Skills / Gap</h4>
+                            <ul id="modalMissingSkills">
+                                <!-- Skills missing -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Graph Flow -->
+                <div class="tab-pane" id="tab-graph">
+                    <p class="tab-desc">This candidate's screening process executed as a stateful graph in LangGraph. Trace the nodes and execution times below:</p>
+                    <div class="graph-visualizer">
+                        <div class="graph-nodes">
+                            <div class="graph-node active-node" id="node-start">
+                                <div class="node-icon"><i class="fa-solid fa-play"></i></div>
+                                <span>Start</span>
+                            </div>
+                            
+                            <div class="graph-arrow arrow-active"><i class="fa-solid fa-arrow-right"></i></div>
+                            
+                            <div class="graph-node" id="node-retrieve">
+                                <div class="node-icon"><i class="fa-solid fa-database"></i></div>
+                                <span>Node 1: Retrieve</span>
+                                <small>FAISS Search</small>
+                            </div>
+                            
+                            <div class="graph-arrow" id="arrow-to-score"><i class="fa-solid fa-arrow-right"></i></div>
+                            
+                            <div class="graph-node" id="node-score">
+                                <div class="node-icon"><i class="fa-solid fa-brain"></i></div>
+                                <span>Node 2: Score & Summarize</span>
+                                <small>LLM Structured Call</small>
+                            </div>
+                            
+                            <div class="graph-arrow" id="arrow-to-end"><i class="fa-solid fa-arrow-right"></i></div>
+                            
+                            <div class="graph-node" id="node-end">
+                                <div class="node-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+                                <span>End</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="terminal-logs-wrapper" style="margin-top: 25px;">
+                        <div class="terminal-header">
+                            <span>Step Execution History</span>
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="terminal-body" id="modalGraphLogs">
+                            <!-- Logs of LangGraph steps -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: RAG Inspector -->
+                <div class="tab-pane" id="tab-rag">
+                    <p class="tab-desc">These are the top-K character chunks extracted from the candidate's resume vector index that matched the Job Description query in FAISS:</p>
+                    <div class="rag-chunks-container" id="modalRagChunks">
+                        <!-- Retrieved chunks rendered as list -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Settings Drawer -->
+    <div class="settings-drawer" id="settingsDrawer">
+        <div class="settings-drawer-header">
+            <h2><i class="fa-solid fa-sliders"></i> Settings</h2>
+            <button class="settings-drawer-close" id="btnCloseSettings">&times;</button>
+        </div>
+        <div class="settings-drawer-body">
+            <div class="form-group">
+                <label for="apiProvider">LLM Provider</label>
+                <div class="select-wrapper">
+                    <select id="apiProvider">
+                        <option value="gemini" selected>Google Gemini (Recommended)</option>
+                        <option value="openai">OpenAI GPT</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="apiKey">LLM API Key</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="apiKey" placeholder="Enter API Key...">
+                </div>
+                <small class="help-text">Saved locally. Never sent to third parties except LLM.</small>
+            </div>
+            <div class="form-group">
+                <label for="embeddingProvider">Embedding Model</label>
+                <div class="select-wrapper">
+                    <select id="embeddingProvider">
+                        <option value="sentence-transformers" selected>Local SentenceTransformers (Free/Offline)</option>
+                        <option value="gemini">Gemini Embeddings</option>
+                        <option value="openai">OpenAI Embeddings</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 15px;">
+                <h3 style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase;">Advanced RAG Options</h3>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="form-group">
+                        <label for="chunkSize">Chunk Size (chars)</label>
+                        <input type="number" id="chunkSize" value="500" min="100" max="2000">
+                    </div>
+                    <div class="form-group">
+                        <label for="chunkOverlap">Chunk Overlap</label>
+                        <input type="number" id="chunkOverlap" value="50" min="0" max="500">
+                    </div>
+                    <div class="form-group">
+                        <label for="topK">RAG Top-K Chunks</label>
+                        <input type="number" id="topK" value="5" min="1" max="15">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="settings-backdrop" id="settingsBackdrop"></div>
+
+    <!-- Architecture Info Modal -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-candidate-info">
+                    <h2><i class="fa-solid fa-circle-info" style="color: var(--primary-color);"></i> System Architecture & Pipeline</h2>
+                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">How ScreenAI Works Under the Hood</span>
+                </div>
+                <button class="close-modal" id="closeInfoModal">&times;</button>
+            </div>
+            
+            <div class="modal-tabs">
+                <button class="tab-btn-info active" data-tab-info="info-overview">Overview</button>
+                <button class="tab-btn-info" data-tab-info="info-rag">RAG Pipeline</button>
+                <button class="tab-btn-info" data-tab-info="info-graph">LangGraph Flow</button>
+                <button class="tab-btn-info" data-tab-info="info-tech">Tech Stack</button>
+            </div>
+
+            <div class="modal-body-content" style="padding: 25px; line-height: 1.6;">
+                <!-- Tab: Overview -->
+                <div class="tab-pane-info active" id="info-overview">
+                    <h3 style="font-family: var(--font-header); margin-bottom: 12px; color: #fff;">End-to-End Pipeline Overview</h3>
+                    <p style="margin-bottom: 15px; color: var(--text-muted);">
+                        ScreenAI automates candidate resume screening by matching CV content directly with a job description. 
+                        Unlike simple keyword search, it parses the resume semantics, isolates matching qualifications, and provides a clear, grounded matching score and summary.
+                    </p>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="font-family: var(--font-header); color: var(--primary-color); margin-bottom: 10px;"><i class="fa-solid fa-shuffle"></i> Core Execution Lifecycle</h4>
+                        <ol style="margin-left: 20px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px;">
+                            <li><strong>Upload:</strong> Recruiter uploads candidate PDF resumes and inputs a Job Description (JD).</li>
+                            <li><strong>RAG Indexing:</strong> The backend extracts text from each PDF, chunks it, and indexes it into a temporary, isolated FAISS vector database.</li>
+                            <li><strong>Stateful Retrieval:</strong> The JD serves as a search query to retrieve the most relevant sections of the candidate's resume (RAG).</li>
+                            <li><strong>Agent Evaluation:</strong> LangGraph orchestrates a multi-step node workflow. Node 1 (Retrieve) retrieves sections. Node 2 (Score & Summarize) prompts the LLM to structure a match evaluation.</li>
+                            <li><strong>Visual Report:</strong> Results are returned in real-time to the dashboard with structured lists of matching skills, missing gaps, and the detailed LangGraph path.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Tab: RAG Pipeline -->
+                <div class="tab-pane-info" id="info-rag">
+                    <h3 style="font-family: var(--font-header); margin-bottom: 12px; color: #fff;">Retrieval-Augmented Generation (RAG)</h3>
+                    <p style="margin-bottom: 15px; color: var(--text-muted);">
+                        To prevent LLMs from hallucinating skills or ignoring long sections, ScreenAI uses a per-candidate isolated RAG index.
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div style="background: rgba(37,99,235,0.05); border: 1px solid rgba(37,99,235,0.15); padding: 15px; border-radius: 10px;">
+                            <h4 style="color: #93c5fd; margin-bottom: 8px;"><i class="fa-solid fa-scissors"></i> Chunking & Parsing</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                                PyPDF extracts raw text page-by-page. LangChain's <code>RecursiveCharacterTextSplitter</code> splits it into overlapping blocks (default: 500 chars with 50 overlap). This ensures semantic context is preserved across splits.
+                            </p>
+                        </div>
+                        <div style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); padding: 15px; border-radius: 10px;">
+                            <h4 style="color: #34d399; margin-bottom: 8px;"><i class="fa-solid fa-server"></i> Local Vector Indexing</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                                Text chunks are embedded locally using <code>SentenceTransformers</code> (all-MiniLM-L6-v2) into 384-dimensional dense vectors and loaded into an in-memory <code>FAISS</code> index. Indexing is performed per-candidate to guarantee privacy.
+                            </p>
+                        </div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: var(--warning); margin-bottom: 8px;"><i class="fa-solid fa-magnifying-glass"></i> Semantic Querying</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">
+                            The Job Description is embedded using the same model. We query FAISS to find the top-K chunks (default: 5) with the highest cosine similarity. Only these segments are passed to the LLM, reducing tokens and keeping evaluation grounded.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab: LangGraph Flow -->
+                <div class="tab-pane-info" id="info-graph">
+                    <h3 style="font-family: var(--font-header); margin-bottom: 12px; color: #fff;">Stateful Agentic Orchestration</h3>
+                    <p style="margin-bottom: 15px; color: var(--text-muted);">
+                        ScreenAI leverages LangGraph to structure the evaluation pipeline as a stateful graph. This allows step-by-step logging, error recovery, and modular execution.
+                    </p>
+                    
+                    <div style="background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.15); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="color: #c084fc; margin-bottom: 12px;"><i class="fa-solid fa-diagram-project"></i> LangGraph Node Execution</h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; color: var(--text-muted);">
+                            <div>🟢 <strong>START</strong> &rarr; Triggers the state entry.</div>
+                            <div>📥 <strong>Node 1: Retrieve</strong> &rarr; Invokes the candidate's FAISS retriever with the job description query, saves the top-K chunks to the state, and records step execution logs.</div>
+                            <div>🧠 <strong>Node 2: Score & Summarize</strong> &rarr; Formulates a structured system prompt, passes the retrieved chunks and JD context to Gemini/OpenAI, requests a validated JSON response, and updates the candidate's match score and summary state.</div>
+                            <div>🏁 <strong>END</strong> &rarr; Workflow terminates and saves details to results list.</div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; font-size: 0.85rem;">
+                        <h4 style="color: var(--accent-color); margin-bottom: 8px;"><i class="fa-solid fa-code"></i> Structured State Schema</h4>
+                        <code style="display: block; background: #06070b; padding: 10px; border-radius: 6px; color: #818cf8; font-family: monospace;">
+                            CandidateState = TypedDict('CandidateState', {<br>
+                            &nbsp;&nbsp;job_description: str, candidate_name: str,<br>
+                            &nbsp;&nbsp;retriever: FAISS, top_k: int,<br>
+                            &nbsp;&nbsp;retrieved_chunks: List[str], match_score: int,<br>
+                            &nbsp;&nbsp;matching_skills: List[str], missing_skills: List[str],<br>
+                            &nbsp;&nbsp;summary: str, logs: List[str], error: Optional[str]<br>
+                            })
+                        </code>
+                    </div>
+                </div>
+
+                <!-- Tab: Tech Stack -->
+                <div class="tab-pane-info" id="info-tech">
+                    <h3 style="font-family: var(--font-header); margin-bottom: 12px; color: #fff;">Technologies & Tools Used</h3>
+                    <p style="margin-bottom: 15px; color: var(--text-muted);">
+                        The application is built using a modern, fast, and lightweight web stack.
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                            <strong style="color: #fff;">FastAPI & Uvicorn</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">High-performance, asynchronous Python web framework for handling API endpoints and serving static files.</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                            <strong style="color: #fff;">LangGraph & LangChain</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Stateful, agentic orchestration framework and integrations for LLM prompts, embeddings, and message chains.</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                            <strong style="color: #fff;">FAISS (CPU)</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Facebook AI Similarity Search library for fast vector indexing and querying in memory.</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                            <strong style="color: #fff;">PyPDF</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Pure Python PDF parser to extract raw textual pages from candidate resume documents.</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                            <strong style="color: #fff;">Gemini 1.5 Flash (Default LLM)</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Google's low-latency, highly capable Gemini LLM for structured scoring and resume summaries.</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                            <strong style="color: #fff;">SentenceTransformers (Default Embeddings)</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">HuggingFace local model (all-MiniLM-L6-v2) for generating vector embeddings offline without cost.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Variables / Credentials
+.env
+.env.*
+!.env.example
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs & System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Vector store cache / Local indexes
+faiss_index/
+
+# Temporary test scripts
+scratch/
+test_real_pipeline.py
+test_gemini.py
