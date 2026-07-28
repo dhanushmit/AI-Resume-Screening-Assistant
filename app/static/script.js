@@ -75,6 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
         embeddingProvider.value = localStorage.getItem('screenai_embedding');
     }
     
+    // Auto-fallback to gemini embeddings on Render to prevent OOM crash (PyTorch/sentence-transformers uses >512MB RAM)
+    if (window.location.hostname.includes('onrender.com')) {
+        if (!localStorage.getItem('screenai_embedding') || localStorage.getItem('screenai_embedding') === 'sentence-transformers') {
+            embeddingProvider.value = 'gemini';
+            localStorage.setItem('screenai_embedding', 'gemini');
+        }
+    }
+    
     // Save settings on change
     apiProvider.addEventListener('change', () => {
         localStorage.setItem('screenai_provider', apiProvider.value);
