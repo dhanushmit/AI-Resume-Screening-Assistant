@@ -1,5 +1,7 @@
 # ScreenAI - AI Resume Screening Assistant
 
+https://ai-resume-assistants.vercel.app/
+
 ScreenAI is a state-of-the-art **AI Resume Screening Assistant** that automatically ranks and evaluates candidate resumes (PDFs) against a provided Job Description.
 
 It uses a localized **RAG (Retrieval-Augmented Generation)** search pipeline to extract the most relevant segments of a candidate's CV and orchestrates a stateful evaluation workflow using **LangGraph** to match qualifications, log step-by-step pipeline executions, and calculate match scores.
