@@ -50,9 +50,23 @@ def get_embedding_model(provider: str, api_key: str = None):
         return OpenAIEmbeddings(openai_api_key=api_key)
     elif provider == "gemini":
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
+        from langchain_google_genai._common import get_client_info
+        from langchain_google_genai._genai_extension import build_generative_service
         if not api_key:
             raise ValueError("Gemini API key is required for Gemini embeddings.")
-        return GoogleGenerativeAIEmbeddings(google_api_key=api_key, model="models/text-embedding-004")
+        
+        embeddings = GoogleGenerativeAIEmbeddings(
+            google_api_key=api_key,
+            model="models/gemini-embedding-2"
+        )
+        # Override the client to use REST transport (workaround for gRPC connection timeouts in version 1.0.6)
+        client_info = get_client_info("GoogleGenerativeAIEmbeddings")
+        embeddings.client = build_generative_service(
+            api_key=api_key,
+            client_info=client_info,
+            transport="rest"
+        )
+        return embeddings
     elif provider == "sentence-transformers":
         from langchain_community.embeddings import HuggingFaceEmbeddings
         try:
@@ -152,7 +166,8 @@ def score_node(state: CandidateState) -> Dict[str, Any]:
                 model="gemini-flash-latest",
                 temperature=0.0,
                 response_mime_type="application/json",
-                max_retries=0
+                transport="rest",
+                max_retries=3
             )
         else:
             raise ValueError(f"Unknown API provider: {api_provider}")
