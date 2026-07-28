@@ -8,11 +8,17 @@ It uses a localized **RAG (Retrieval-Augmented Generation)** search pipeline to 
 
 ---
 
+## 📺 Application Demo
+
+<video src="demo.mp4" width="100%" controls></video>
+
+---
+
 ## 🌟 Key Features
 
 - **Isolated Per-Candidate RAG Indexing:** Builds a separate vector database index for each uploaded CV, ensuring data privacy and preventing cross-candidate evaluation leaks.
 - **Stateful LangGraph Orchestration:** Evaluates candidates through a step-by-step workflow (START &rarr; Node 1: Retrieve &rarr; Node 2: Score & Summarize &rarr; END) with full execution logs.
-- **Local offline embeddings:** Uses SentenceTransformers (`all-MiniLM-L6-v2`) locally to compute vector embeddings for free and offline.
+- **Fast Cloud Embeddings:** Uses Google Gemini Embeddings (`models/text-embedding-004`) for high-performance and low-RAM semantic matching.
 - **Interactive Dashboard:** Premium dark-themed single-page dashboard with glassmorphism layout, live log viewing, off-canvas settings drawer, and detailed candidate match logs.
 - **CSV Export:** Export structured results (rank, candidate name, match score, matching skills, gaps, and summaries) to CSV with one click.
 
